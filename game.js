@@ -7,7 +7,7 @@
 		game.fire("gameLoopEnd");
 	}
 	
-	WW.game = Class.create(WW.Event.EventDispatcher, {
+	jojo.Game = Class.create(jojo.event.EventDispatcher, {
 		frameDelay: 30,
 		initialize: function($super, options) {
 			$super(options);

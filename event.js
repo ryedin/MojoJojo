@@ -3,7 +3,7 @@
     /**
      * Root namespace for custom event publishing/subscribing/dispatching services
      */
-    jojo.ns("jojo.Event");
+    jojo.ns("jojo.event");
 
     /**
      * The EventPublisher class allows objects to fire events (and other objects to
@@ -11,7 +11,7 @@
      * synchronously or asynchronously (depending on how the handlers register themselves),
      * and may pass optional arguments to the handlers.
      */ 
-    jojo.Event.EventPublisher = Class.create();
+    jojo.event.EventPublisher = Class.create();
     
     //private methods ------------------------------------
     /**
@@ -28,7 +28,7 @@
         eventObj = Object.extend({
             fireGlobal: false // set true to fire as a global event after firing locally
         }, eventObj);
-        if (eventPublisher === jojo.Event.EventDispatcher) {
+        if (eventPublisher === jojo.event.EventDispatcher) {
             eventObj.fireGlobal = false; //already at the global level... having true here would result in an infinite loop
         }
         var handlers = new jojo.lang.Registry(true, false, "Error: Event handlers must have a unique id property (one will auto generate if you don't specify one)");
@@ -43,7 +43,7 @@
         });
     }
 	
-    jojo.Event.EventPublisher.prototype = {	
+    jojo.event.EventPublisher.prototype = {	
         /**
          * @constructor
          */
@@ -313,13 +313,13 @@
 		                });
 		            }
 		            oneShotHandlers.each(function(handler) {
-			            if (me.removeEventHandler) {// support the possibility that dispose() was called in an even handler
+			            if (me.removeEventHandler) {// support the possibility that the object was deconstructed during the event
 			                me.removeEventHandler(eventName, handler);
 			            }
 		            });
 		            //optionally fire globally
 		            if (this.eventCache && this.eventCache[eventName].fireGlobal) {
-		                jojo.Event.EventDispatcher.fire(eventName, args); //TODO: some sort of automatic (or manual) namespacing?
+		                jojo.event.EventDispatcher.fire(eventName, args); //TODO: some sort of automatic (or manual) namespacing?
 		            }
 		        }
 	        }
@@ -364,6 +364,6 @@
      * Global event dispatcher object for wide spread broadcasting and generic subscriptions.
      * This facilitates greater de-coupling where publishers and subscribers need not know about each other.
      */
-    jojo.Event.EventDispatcher = new jojo.Event.EventPublisher();
+    jojo.event.EventDispatcher = new jojo.event.EventPublisher();
 
 })();

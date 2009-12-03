@@ -28,7 +28,7 @@ jojo.lang.Registry.prototype = {
 		}
 		this.fireEvents = fireEvents;
 		if (this.fireEvents) {
-			Object.extend(this, new jojo.Event.EventPublisher());
+			Object.extend(this, new jojo.event.EventPublisher());
 		}
 	},
 	/**

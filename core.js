@@ -1,4 +1,5 @@
 var jojo = MojoJojo = {
+	version: "0.1",
 	/**
 	 * Simple incremental ID provider for cases where the developer wants to rely on the framework to auto ID stuff
 	 */
