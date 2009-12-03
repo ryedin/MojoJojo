@@ -7,7 +7,7 @@
 		game.fire("gameLoopEnd");
 	}
 	
-	jojo.Game = Class.create(jojo.event.EventDispatcher, {
+	jojo.Game = Class.create(jojo.event.EventPublisher, {
 		frameDelay: 30,
 		initialize: function($super, options) {
 			$super(options);
@@ -23,6 +23,8 @@
 					this.loadConfig(options.configPath);
 				}
 			}
+			//pause game on explicit errors
+			this.on("error", this.pauseGame.bind(this));
 		},
 		loadConfig: function(path) {
 			var me = this;
@@ -52,9 +54,10 @@
 					source: "startGame", 
 					message: "No Canvas element was set prior to calling startGame()"
 				});
+				return null;
 			}
 			var me = this;
-			if (!this.wired) {
+			if (!this.wired) { //only want to wire the Mojo listeners once per instance
 				this.ctx = this.canvas.getContext('2d');
 				Mojo.Event.listen(this.canvas, 'mousedown', this.handleTouch.bind(this));
 			    Mojo.Event.listen(this.canvas, 'mouseup', this.handleMouseUp.bind(this));
@@ -72,7 +75,6 @@
 							source: "gameLoop",
 							message: "Failure in gameLoop: " + error.message
 						});
-						me.pauseGame();
 					}
 				}, this.frameDelay);
 				this.gameRunning = true;
@@ -112,7 +114,7 @@
 		},
 		handleMouseMove: function(event) {
 			this.fire("mouseMove", {event: event});
-		    //handle entity "untouch" events (entities where the previous x/y was in touchzone but new x/y is not)
+		    //handle entity "untouch" events (entities where the previous x/y/z was in touchzone but new x/y/z is not)
 		    var untouchedEntities = findUntouchedEntities(event);//pseudo-code
 		    if (untouchedEntities) {
 				for (var i = 0, _e = untouchedEntities; i < untouchedEntities.length; i++) {
@@ -132,7 +134,7 @@
 				this.fire("beforeAddEntity", {entity: entity});
 				this.entityCollection.push(entity);
 				//allow custom indexing function on entity classes (recommended)
-				var key = entity.getIndexKey ? entity.getIndexKey() : WW.id();
+				var key = entity.getIndexKey ? entity.getIndexKey() : jojo.id();
 				this.entityCache[key] = entity;
 				this.entityKeys.push(key);
 				entity.addedToCollection = true;

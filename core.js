@@ -49,7 +49,7 @@ var jojo = MojoJojo = {
             })();
         }
         else {
-           throw new Error("jojo.ns() requires a valid namespace spec to passed as the first argument");
+           throw new Error("jojo.ns() requires a valid namespace spec to be passed as the first argument");
         }
         return ret;
     },
