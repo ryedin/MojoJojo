@@ -181,3 +181,25 @@ jojo.lang.Registry.prototype = {
 	    this.items.each(iterator);
 	}
 };
+
+/**
+ * Semaphore is a nice little async helper when multiple potential async paths need to complete before a common callback gets executed
+ */
+jojo.lang.Semaphore = Class.create({
+    initialize: function(callback, context) {
+        this.semaphore = 0;
+        this.callback = callback;
+        this.context = context || this;
+    },
+    increment: function() {
+        this.semaphore++;
+    },
+    decrement: function() {
+        this.semaphore--;
+    },
+    execute: function() {
+        if (this.semaphore == 0 && this.callback) {
+            this.callback.apply(this.context, arguments); //this means that the args that actually reach the callback will be from the LAST async block to call .execute();
+        }
+    }
+});

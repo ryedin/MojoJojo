@@ -10,19 +10,27 @@
 	jojo.Game = Class.create(jojo.event.EventPublisher, {
 		frameDelay: 30,
 		initialize: function($super, options) {
+			//basic validation: require a canvas element to be passed in
+			if (!options || !options.canvas) {
+				throw new Error("The MojoJojo.Game class requires a canvas element to be passed into the constructor");
+			}
+			
+			//base class construction			
 			$super(options);
 			
+			//entity management objects
 			this.entityCollection = []; //flat array of all entities that can be used for sorting algorithms
 			this.entityCache = {}; //indexed associative array for fast retrieval
 			this.entityKeys = []; //array of keys used to index entities in the cache object
-			if (options) {
-				this.frameDelay = options.frameDelay || this.frameDelay;
-				this.canvas = options.canvas; //the canvas element to use to draw the game scenes to and listen to events
-				this.config = options.config;
-				if (options.configPath) {
-					this.loadConfig(options.configPath);
-				}
+						
+			//setup options
+			this.frameDelay = options.frameDelay || this.frameDelay;
+			this.canvas = options.canvas; //the canvas element to use to draw the game scenes to and listen to events
+			this.config = options.config;
+			if (options.configPath) {
+				this.loadConfig(options.configPath);
 			}
+			
 			//pause game on explicit errors
 			this.on("error", this.pauseGame.bind(this));
 		},
@@ -48,13 +56,6 @@
 		startGame: function(options) {
 			if (options) {
 				Object.extend(this, options);
-			}
-			if (!this.canvas) {
-				this.fire("error", {
-					source: "startGame", 
-					message: "No Canvas element was set prior to calling startGame()"
-				});
-				return null;
 			}
 			var me = this;
 			if (!this.wired) { //only want to wire the Mojo listeners once per instance
@@ -98,7 +99,7 @@
 		    var touchedEntities = findTouchedEntities();//pseudo-code
 		    if (touchedEntities) {
 				for (var i = 0, _e = touchedEntities; i < touchedEntities.length; i++) {
-					_e[i].onTouch(event);
+					_e[i].fire("touch", {game: this, event: event});
 				}
 			}
 		},
@@ -108,7 +109,7 @@
 		    var clickedEntities = findClickedEntities(event);//pseudo-code
 		    if (clickedEntities) {
 				for (var i = 0, _e = clickedEntities; i < clickedEntities.length; i++) {
-					_e[i].onClick(event);
+					_e[i].fire("click", {game: this, event: event});
 				}
 			}
 		},
@@ -118,14 +119,14 @@
 		    var untouchedEntities = findUntouchedEntities(event);//pseudo-code
 		    if (untouchedEntities) {
 				for (var i = 0, _e = untouchedEntities; i < untouchedEntities.length; i++) {
-					_e[i].onUnTouch(event);
+					_e[i].fire("untouch", {game: this, event: event});
 				}
 			}
 		    //handle new entity touch events
 			var newTouchedEntities = findNewTouchedEntities(event);//pseudo-code
 		    if (newTouchedEntities) {
 				for (var i = 0, _e = newTouchedEntities; i < newTouchedEntities.length; i++) {
-					_e[i].onTouch(event);
+					_e[i].fire("touch", {game: this, event: event});
 				}
 			}
 		},
@@ -134,13 +135,13 @@
 				this.fire("beforeAddEntity", {entity: entity});
 				this.entityCollection.push(entity);
 				//allow custom indexing function on entity classes (recommended)
-				var key = entity.getIndexKey ? entity.getIndexKey() : jojo.id();
+				var key = entity.getIndexKey ? entity.getIndexKey() : entity.id;
 				this.entityCache[key] = entity;
 				this.entityKeys.push(key);
 				entity.addedToCollection = true;
-				if (entity.onAdd) { //allow entity classes to define logic upon being added to the scene (for example, for initial pathfinding calculations or other setup)
-					entity.onAdd(this);
-				}
+				entity.game = this;
+				//allow entity classes to define logic upon being added to the scene (for example, for initial pathfinding calculations or other setup)
+				entity.fire("added");
 				this.fire("entityAdded", {entity: entity});
 			}
 		}
